@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="__CSP__">
+<title>BTC Airgap Bridge</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23f7931a'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-size='20' font-weight='bold' fill='%231a1200' text-anchor='middle'%3E%E2%82%BF%3C/text%3E%3C/svg%3E">
+<style>__CSS__</style>
+</head>
+<body>
+<div class="app">
+
+<div class="topbar">
+  <div class="brand"><span class="coin">₿</span> <span data-i18n="topbar.brand">BTC Airgap Bridge</span></div>
+  <div class="topbar-actions">
+    <span id="network-badge" class="badge badge-testnet">TESTNET</span>
+    <button class="theme-toggle" id="lang-toggle" type="button" data-i18n="topbar.lang.toEnglish">🌐 English</button>
+    <button class="theme-toggle" id="theme-toggle" type="button" data-i18n="topbar.theme.toLight">☀ Modo claro</button>
+  </div>
+</div>
+
+<main>
+
+<div class="panel">
+  <div class="notice notice-info" data-i18n="notice.warning">
+    <strong>Que es esto:</strong> el puente online de un flujo air-gapped...
+  </div>
+
+  <fieldset class="network-choice">
+    <legend data-i18n="network.legend">Red</legend>
+    <label><input type="radio" name="network" id="network-testnet" checked> <span data-i18n="network.testnet.label">Testnet (recomendado para probar)</span></label>
+    <label><input type="radio" name="network" id="network-mainnet"> <span data-i18n="network.mainnet.label">Mainnet (Bitcoin real)</span></label>
+    <label id="mainnet-confirm-wrap" hidden class="mainnet-confirm">
+      <input type="checkbox" id="mainnet-confirm-checkbox">
+      <span data-i18n="network.mainnet.confirm">Entiendo que voy a operar con Bitcoin real y puedo perder mis fondos si me equivoco.</span>
+    </label>
+  </fieldset>
+</div>
+
+<section class="panel">
+  <h2 data-i18n="utxos.title">Obtener UTXOs y tarifas de red</h2>
+  <p class="hint" data-i18n="utxos.hint">Pega una o mas direcciones...</p>
+
+  <form id="utxos-form">
+    <label class="field">
+      <span data-i18n="utxos.address.label">Direcciones</span>
+      <textarea id="address-input" rows="4" autocomplete="off" spellcheck="false"></textarea>
+      <div class="file-load-row">
+        <button type="button" class="btn-secondary" id="address-file-btn" data-i18n="fileLoad.button">📁 Cargar desde archivo</button>
+        <input type="file" id="address-file-input" accept=".txt,text/plain" hidden>
+      </div>
+    </label>
+
+    <p id="utxos-error" class="error" hidden></p>
+
+    <button type="submit" id="utxos-query-btn" class="btn-primary" data-i18n="utxos.query">Consultar</button>
+  </form>
+
+  <div id="utxos-progress" class="scan-log" hidden></div>
+
+  <div id="utxos-results" hidden>
+    <h2 data-i18n="utxos.results.title">Resultado</h2>
+
+    <h2 data-i18n="utxos.fee.title" style="font-size:14px;">Tarifas de red actuales</h2>
+    <div class="fee-grid">
+      <div class="fee-cell">
+        <span class="fee-cell-label" data-i18n="utxos.fee.fast">Rapida (~1 bloque)</span>
+        <span class="fee-cell-value" id="fee-fast">-</span>
+      </div>
+      <div class="fee-cell">
+        <span class="fee-cell-label" data-i18n="utxos.fee.medium">Media (~1 hora)</span>
+        <span class="fee-cell-value" id="fee-medium">-</span>
+      </div>
+      <div class="fee-cell">
+        <span class="fee-cell-label" data-i18n="utxos.fee.economy">Economica (~1 dia)</span>
+        <span class="fee-cell-value" id="fee-economy">-</span>
+      </div>
+    </div>
+
+    <dl class="review-list">
+      <dt data-i18n="utxos.height.label">Altura de bloque actual</dt><dd id="utxos-height"></dd>
+      <dt data-i18n="utxos.balance.label">Saldo total consultado</dt><dd id="utxos-balance"></dd>
+    </dl>
+
+    <h2 data-i18n="utxos.list.title" style="font-size:14px;">UTXOs</h2>
+    <ul class="utxo-list" id="utxos-list"></ul>
+
+    <div class="actions-row">
+      <button type="button" id="utxos-download-btn" class="btn-secondary" data-i18n="utxos.download">⬇ Descargar UTXOs (.json)</button>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2 data-i18n="broadcast.title">Transmitir una transaccion ya firmada</h2>
+  <p class="hint" data-i18n="broadcast.hint">Pega o carga la transaccion firmada...</p>
+
+  <form id="broadcast-form">
+    <label class="field">
+      <span data-i18n="broadcast.label">Transaccion firmada (hex) o PSBT finalizado</span>
+      <textarea id="signed-tx-input" rows="6" autocomplete="off" spellcheck="false"></textarea>
+      <div class="file-load-row">
+        <button type="button" class="btn-secondary" id="signed-tx-file-btn" data-i18n="fileLoad.button">📁 Cargar desde archivo</button>
+        <input type="file" id="signed-tx-file-input" accept=".txt,text/plain,.psbt" hidden>
+      </div>
+    </label>
+
+    <p id="broadcast-error" class="error" hidden></p>
+
+    <button type="submit" class="btn-primary" data-i18n="broadcast.decode">Decodificar</button>
+  </form>
+
+  <div id="broadcast-review" hidden>
+    <h2 data-i18n="broadcast.review.title">Revisar antes de transmitir</h2>
+
+    <dl class="review-list">
+      <dt data-i18n="broadcast.review.txid">TXID (una vez transmitida)</dt><dd id="review-txid" class="mono"></dd>
+      <dt data-i18n="broadcast.review.vsize">Tamano virtual</dt><dd id="review-vsize"></dd>
+      <dt data-i18n="broadcast.review.outputsTotal">Total de salidas</dt><dd id="review-outputs-total"></dd>
+      <dt data-i18n="broadcast.review.fee">Comision</dt><dd id="review-fee"></dd>
+    </dl>
+
+    <h2 data-i18n="broadcast.review.outputs" style="font-size:14px;">Salidas</h2>
+    <ul class="output-list" id="review-outputs"></ul>
+
+    <label class="checkbox-field">
+      <input type="checkbox" id="review-confirm-checkbox">
+      <span data-i18n="broadcast.review.confirm">Revise los destinos y los montos...</span>
+    </label>
+
+    <p id="review-error" class="error" hidden></p>
+
+    <div class="actions-row">
+      <button id="confirm-send-btn" class="btn-primary" disabled data-i18n="broadcast.review.send">Transmitir</button>
+      <button id="cancel-review-btn" type="button" class="btn-secondary" data-i18n="broadcast.review.cancel">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="broadcast-result" hidden>
+    <h2 data-i18n="broadcast.result.title">Transaccion transmitida</h2>
+    <p class="hint" data-i18n="broadcast.result.hint">Ya esta en la red...</p>
+
+    <dl class="review-list">
+      <dt data-i18n="broadcast.result.txid">TXID</dt><dd id="result-txid" class="mono"></dd>
+    </dl>
+
+    <p><a id="result-link" href="#" target="_blank" rel="noopener noreferrer" data-i18n="broadcast.result.link">Ver en mempool.space</a></p>
+
+    <div class="qr-wrap">
+      <img id="result-qr" alt="">
+    </div>
+
+    <div class="actions-row">
+      <button id="result-copy-btn" type="button" class="btn-secondary" data-i18n="broadcast.result.copy">Copiar TXID</button>
+      <button id="result-another-btn" type="button" class="btn-primary" data-i18n="broadcast.result.another">Transmitir otra</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<p class="footer-note" data-i18n="footer.note">
+  Consulta UTXOs y transmite 100% desde tu navegador...
+</p>
+
+</div>
+<script>__SCRIPT__</script>
+</body>
+</html>

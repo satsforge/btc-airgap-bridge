@@ -1,0 +1,24 @@
+{
+  "name": "btc-airgap-bridge",
+  "version": "1.0.0",
+  "description": "Puente online para un flujo air-gapped: consulta UTXOs y tarifas de red, y transmite una transaccion ya firmada, sin que ninguna clave privada toque esta herramienta",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@scure/base": "^2.4.0",
+    "@scure/btc-signer": "^2.4.1",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
+    "esbuild": "^0.28.1"
+  }
+}
