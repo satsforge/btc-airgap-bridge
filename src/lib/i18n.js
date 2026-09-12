@@ -74,8 +74,10 @@ const dict = {
     es: 'desconocida (no consultaste esos UTXOs en esta sesion)',
     en: 'unknown (those UTXOs were not queried in this session)',
   },
+  'broadcast.review.inputs': { es: 'Entradas', en: 'Inputs' },
   'broadcast.review.outputs': { es: 'Salidas', en: 'Outputs' },
   'broadcast.review.noAddress': { es: '(script sin direccion estandar)', en: '(non-standard script)' },
+  'broadcast.review.amountUnknown': { es: 'monto desconocido', en: 'amount unknown' },
   'broadcast.review.confirm': {
     es: 'Revise los destinos y los montos, y quiero transmitir esta transaccion a la red. Entiendo que no se puede deshacer.',
     en: 'I reviewed the destinations and amounts, and I want to broadcast this transaction to the network. I understand this cannot be undone.',

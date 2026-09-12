@@ -97,10 +97,18 @@ abrirlo en un equipo desconectado.
   UTXO, o porque esta misma sesión ya consultó esos UTXOs en el panel de
   arriba), se muestra el número exacto. Cuando no, se muestra explícitamente
   como "desconocida" — nunca se adivina ni se omite en silencio.
-- **Pantalla de revisión obligatoria**: antes de transmitir se muestran
-  todas las salidas (dirección + monto), el tamaño virtual y la comisión (si
-  se pudo calcular), con un checkbox de confirmación explícito que advierte
-  que transmitir es irreversible. No hay transmisión con un solo click.
+- **Pantalla de revisión obligatoria, sin nada truncado ni oculto**: antes de
+  transmitir se muestran todas las entradas (qué UTXOs propios se gastan) y
+  salidas (dirección completa + monto, nunca acortada — es la última
+  pantalla antes de algo irreversible, y un ataque de dirección parecida
+  depende exactamente de que el medio quede oculto), el tamaño virtual y la
+  comisión (si se pudo calcular), con un checkbox de confirmación explícito
+  que advierte que transmitir es irreversible. No hay transmisión con un
+  solo click.
+- **Cambiar de red descarta cualquier revisión pendiente**: una transacción
+  revisada (o una lista de UTXOs consultada) bajo una red queda atada a esa
+  red — pasar de Testnet a Mainnet (o viceversa) la descarta y oculta los
+  paneles en vez de dejarla disponible para confirmar bajo la red nueva.
 - **Cero persistencia**: no se usa `localStorage`, `sessionStorage`, cookies
   ni IndexedDB.
 - **CSP con red como excepción explícita, no un descuido**: a diferencia de
