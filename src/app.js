@@ -23,9 +23,12 @@ function fmtBtc(sats) {
   return btc.Decimal.encode(sats);
 }
 
+// This is the one screen where a truncated address is actively dangerous:
+// broadcasting is irreversible, and a lookalike-address attack specifically
+// relies on matching the first/last few characters while swapping the
+// middle. Always show it in full here.
 function fmtAddress(address) {
-  if (!address) return tr('broadcast.review.noAddress');
-  return address.length > 20 ? `${address.slice(0, 10)}…${address.slice(-8)}` : address;
+  return address || tr('broadcast.review.noAddress');
 }
 
 function setError(elId, message) {
@@ -109,8 +112,27 @@ function initNetworkChoice() {
     state.network = btcNetwork(state.isTestnet);
     updateNetworkBadge();
   }
-  mainnetRadio.addEventListener('change', syncNetworkUI);
-  testnetRadio.addEventListener('change', syncNetworkUI);
+
+  // Switching networks after a transaction is already under review is the
+  // one path where re-enabling "Transmitir" (via the mainnet-confirm
+  // checkbox) could send a transaction that was reviewed - addresses and
+  // all - under the *other* network's rendering, to whichever provider is
+  // now selected. Everything shown so far belongs to the network it was
+  // fetched/rendered under; discard it and make the user start over rather
+  // than carry stale state across a network switch.
+  function onNetworkChanged() {
+    if (state.pendingTx) {
+      state.pendingTx = null;
+      $('broadcast-review').hidden = true;
+      $('broadcast-result').hidden = true;
+    }
+    state.lastUtxoIndex = null;
+    $('utxos-results').hidden = true;
+    syncNetworkUI();
+  }
+
+  mainnetRadio.addEventListener('change', onNetworkChanged);
+  testnetRadio.addEventListener('change', onNetworkChanged);
   mainnetConfirmCheckbox.addEventListener('change', syncNetworkUI);
   syncNetworkUI();
 }
@@ -215,6 +237,23 @@ function renderBroadcastReview(summary) {
   $('review-vsize').textContent = `${summary.vsize} vB`;
   $('review-outputs-total').textContent = `${fmtBtc(summary.outputsTotal)} BTC`;
   $('review-fee').textContent = summary.fee !== null ? `${fmtBtc(summary.fee)} BTC` : tr('broadcast.review.feeUnknown');
+
+  const inputsList = $('review-inputs');
+  inputsList.innerHTML = '';
+  for (const input of summary.inputs) {
+    const li = document.createElement('li');
+    li.className = 'output-row';
+    // The outpoint identifies which of the signer's own UTXOs gets spent -
+    // not a destination an attacker controls, so unlike the output
+    // addresses below there's no lookalike-swap risk in shortening it.
+    const outpoint = input.txid ? `${input.txid.slice(0, 10)}…${input.txid.slice(-6)}:${input.vout}` : '?';
+    const amountText = input.amount !== null ? `${fmtBtc(input.amount)} BTC` : tr('broadcast.review.amountUnknown');
+    li.innerHTML = `
+      <span class="output-address utxo-outpoint">${outpoint}${input.address ? `<span class="utxo-address">${fmtAddress(input.address)}</span>` : ''}</span>
+      <span class="output-amount">${amountText}</span>
+    `;
+    inputsList.appendChild(li);
+  }
 
   const list = $('review-outputs');
   list.innerHTML = '';
